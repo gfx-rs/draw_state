@@ -21,9 +21,9 @@ use std::fmt;
 
 use device::target;
 
-/// The winding order of a set of vertices.
+/// The front face winding order of a set of vertices.
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
-pub enum WindingOrder {
+pub enum FrontFace {
     /// Clockwise winding order.
     Clockwise,
     /// Counter-clockwise winding order.
@@ -44,7 +44,7 @@ pub struct Offset(pub OffsetFactor, pub OffsetUnits);
 /// Which face, if any, to cull.
 #[allow(missing_docs)]
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub enum CullMode {
+pub enum CullFace {
     Nothing,
     Front,
     Back,
@@ -57,8 +57,8 @@ pub enum RasterMethod {
     Point,
     /// Rasterize as a line with the given width.
     Line(LineWidth),
-    /// Rasterize as a face with a given cull mode.
-    Fill(CullMode),
+    /// Rasterize as a face with a given cull face mode.
+    Fill(CullFace),
 }
 
 /// Primitive rasterization state. Note that GL allows different raster
@@ -66,7 +66,7 @@ pub enum RasterMethod {
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Primitive {
     /// Which vertex winding is considered to be the front face for culling.
-    pub front_face: WindingOrder,
+    pub front_face: FrontFace,
     /// How to rasterize this primitive.
     pub method: RasterMethod,
     /// Any polygon offset to apply.
@@ -74,11 +74,11 @@ pub struct Primitive {
 }
 
 impl Primitive {
-    /// Get the cull mode, if any, for this primitive state.
-    pub fn get_cull_mode(&self) -> CullMode {
+    /// Get the cull face, if any, for this primitive state.
+    pub fn get_cull_face(&self) -> CullFace {
         match self.method {
             RasterMethod::Fill(mode) => mode,
-            _ => CullMode::Nothing,
+            _ => CullFace::Nothing,
         }
     }
 }
@@ -86,8 +86,8 @@ impl Primitive {
 impl Default for Primitive {
     fn default() -> Primitive {
         Primitive {
-            front_face: WindingOrder::CounterClockwise,
-            method: RasterMethod::Fill(CullMode::Nothing),
+            front_face: FrontFace::CounterClockwise,
+            method: RasterMethod::Fill(CullFace::Nothing),
             offset: None,
         }
     }

@@ -17,7 +17,7 @@
 //! Configures primitive assembly (PA), rasterizer, and output merger (OM) blocks.
 
 use device::state;
-use device::state::{BlendValue, CullMode, Equation, InverseFlag, RasterMethod, StencilOp, WindingOrder};
+use device::state::{BlendValue, CullFace, Equation, InverseFlag, RasterMethod, StencilOp, FrontFace};
 use device::target::{Mask, Rect, Stencil};
 
 /// An assembly of states that affect regular draw calls
@@ -59,8 +59,8 @@ impl DrawState {
     pub fn new() -> DrawState {
         DrawState {
             primitive: state::Primitive {
-                front_face: WindingOrder::CounterClockwise,
-                method: RasterMethod::Fill(CullMode::Back),
+                front_face: FrontFace::CounterClockwise,
+                method: RasterMethod::Fill(CullFace::Back),
                 offset: None,
             },
             multi_sample: None,

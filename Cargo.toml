@@ -13,8 +13,8 @@
 # limitations under the License.
 
 [package]
-name = "gfx"
-version = "0.1.7"
+name = "draw_state"
+version = "0.0.1"
 description = "Graphics state blocks for gfx-rs"
 homepage = "https://github.com/gfx-rs/draw_state"
 repository = "https://github.com/gfx-rs/draw_state"
