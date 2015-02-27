@@ -19,7 +19,7 @@
 use std::default::Default;
 use std::fmt;
 
-use device::target;
+use target;
 
 /// The front face winding order of a set of vertices.
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
