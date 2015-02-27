@@ -96,31 +96,3 @@ impl fmt::Debug for ClearData {
             &self.color[..], self.depth, self.stencil)
     }
 }
-
-/// Type of the frame buffer access
-#[repr(u8)]
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Access {
-    /// Draw access
-    Draw,
-    /// Read access
-    Read,
-}
-
-/// When rendering, each "output" of the fragment shader goes to a specific target. A `Plane` can
-/// be bound to a target, causing writes to that target to affect the `Plane`.
-#[derive(Copy, Clone, PartialEq, Debug)]
-pub enum Target {
-    /// Color data.
-    ///
-    /// # Portability Note
-    ///
-    /// The device is only required to expose one color target.
-    Color(u8),
-    /// Depth data.
-    Depth,
-    /// Stencil data.
-    Stencil,
-    /// A target for both depth and stencil data at once.
-    DepthStencil,
-}
