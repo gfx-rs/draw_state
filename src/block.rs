@@ -205,10 +205,20 @@ impl Default for Depth {
 #[allow(missing_docs)]
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
 pub enum Equation {
+    /// Adds source and destination.
+    /// Source and destination are multiplied by blending parameters before addition.
     Add,
+    /// Subtracts destination from source.
+    /// Source and destination are multiplied by blending parameters before subtraction.
     Sub,
+    /// Subtracts source from destination.
+    /// Source and destination are multiplied by blending parameters before subtraction.
     RevSub,
+    /// Component-wise minimum value of source and destination.
+    /// Blending parameters are ignored.
     Min,
+    /// Component-wise maximum value of source and destination.
+    /// Blending parameters are ignored.
     Max,
 }
 
