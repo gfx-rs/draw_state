@@ -224,18 +224,9 @@ pub enum Equation {
 
 #[allow(missing_docs)]
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
-pub enum InverseFlag {
-    Normal,
-    Inverse,
-}
-
-#[allow(missing_docs)]
-#[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
 pub enum BlendValue {
-    Zero,
     SourceColor,
     SourceAlpha,
-    SourceAlphaSaturated,
     DestColor,
     DestAlpha,
     ConstColor,
@@ -244,7 +235,13 @@ pub enum BlendValue {
 
 #[allow(missing_docs)]
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
-pub struct Factor(pub InverseFlag, pub BlendValue);
+pub enum Factor {
+    Zero,
+    One,
+    SourceAlphaSaturated,
+    ZeroPlus(BlendValue),
+    OneMinus(BlendValue),
+}
 
 #[allow(missing_docs)]
 #[derive(Eq, Ord, PartialEq, PartialOrd, Hash, Copy, Clone, Debug)]
@@ -258,8 +255,8 @@ impl Default for BlendChannel {
     fn default() -> BlendChannel {
         BlendChannel {
             equation: Equation::Add,
-            source: Factor(InverseFlag::Inverse, BlendValue::Zero),
-            destination: Factor(InverseFlag::Normal, BlendValue::Zero),
+            source: Factor::One,
+            destination: Factor::One,
         }
     }
 }

@@ -23,7 +23,7 @@ extern crate bitflags;
 pub mod state;
 pub mod target;
 
-use state::{BlendValue, CullFace, Equation, InverseFlag, RasterMethod, StencilOp, FrontFace};
+use state::{BlendValue, CullFace, Equation, RasterMethod, StencilOp, FrontFace};
 use target::{Mask, Rect, Stencil};
 
 /// An assembly of states that affect regular draw calls
@@ -125,26 +125,26 @@ impl DrawState {
             BlendPreset::Additive => state::Blend {
                 color: state::BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
-                    destination: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
+                    source: state::Factor::One,
+                    destination: state::Factor::One,
                 },
                 alpha: state::BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
-                    destination: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
+                    source: state::Factor::One,
+                    destination: state::Factor::One,
                 },
                 value: [0.0, 0.0, 0.0, 0.0],
             },
             BlendPreset::Alpha => state::Blend {
                 color: state::BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor(InverseFlag::Normal, BlendValue::SourceAlpha),
-                    destination: state::Factor(InverseFlag::Inverse, BlendValue::SourceAlpha),
+                    source: state::Factor::ZeroPlus(BlendValue::SourceAlpha),
+                    destination: state::Factor::OneMinus(BlendValue::SourceAlpha),
                 },
                 alpha: state::BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
-                    destination: state::Factor(InverseFlag::Inverse, BlendValue::Zero),
+                    source: state::Factor::One,
+                    destination: state::Factor::One,
                 },
                 value: [0.0, 0.0, 0.0, 0.0],
             },
