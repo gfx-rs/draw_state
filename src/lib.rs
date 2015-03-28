@@ -48,7 +48,7 @@ pub struct DrawState {
 }
 
 /// Blend function presets for ease of use.
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
 pub enum BlendPreset {
     /// When combining two fragments, add their values together, saturating at 1.0
     Additive,
