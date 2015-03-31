@@ -51,9 +51,9 @@ pub struct DrawState {
 #[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
 pub enum BlendPreset {
     /// When combining two fragments, add their values together, saturating at 1.0
-    Additive,
+    Add,
     /// When combining two fragments, multiply their values together.
-    Multiplicative,
+    Multiply,
     /// When combining two fragments, add the value of the source times its alpha channel with the
     /// value of the destination multiplied by the inverse of the source alpha channel. Has the
     /// usual transparency effect: mixes the two colors using a fraction of each one specified by
@@ -130,7 +130,7 @@ impl DrawState {
     /// Set the blend mode to one of the presets
     pub fn blend(mut self, preset: BlendPreset) -> DrawState {
         self.blend = Some(match preset {
-            BlendPreset::Additive => state::Blend {
+            BlendPreset::Add => state::Blend {
                 color: state::BlendChannel {
                     equation: Equation::Add,
                     source: state::Factor::One,
@@ -143,7 +143,7 @@ impl DrawState {
                 },
                 value: [0.0, 0.0, 0.0, 0.0],
             },
-            BlendPreset::Multiplicative => state::Blend {
+            BlendPreset::Multiply => state::Blend {
                 color: state::BlendChannel {
                     equation: Equation::Add,
                     source: state::Factor::ZeroPlus(BlendValue::DestColor),
