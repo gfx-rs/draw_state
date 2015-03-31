@@ -59,6 +59,12 @@ pub enum BlendPreset {
     /// usual transparency effect: mixes the two colors using a fraction of each one specified by
     /// the alpha of the source.
     Alpha,
+    /// When combining two fragments, subtract the destination color from a constant color
+    /// using the source color as weight. Has an invert effect with the constant color
+    /// as base and source color controlling displacement from the base color.
+    /// A white source color and a white value results in plain invert.
+    /// The output alpha is same as destination alpha.
+    Invert,
 }
 
 impl DrawState {
@@ -162,6 +168,19 @@ impl DrawState {
                     destination: state::Factor::One,
                 },
                 value: [0.0, 0.0, 0.0, 0.0],
+            },
+            BlendPreset::Invert => state::Blend {
+                color: state::BlendChannel {
+                    equation: Equation::Sub,
+                    source: state::Factor::ZeroPlus(state::BlendValue::ConstColor),
+                    destination: state::Factor::ZeroPlus(state::BlendValue::SourceColor),
+                },
+                alpha: state::BlendChannel {
+                    equation: state::Equation::Add,
+                    source: state::Factor::Zero,
+                    destination: state::Factor::One,
+                },
+                value: [1.0, 1.0, 1.0, 1.0],
             },
         });
         self
