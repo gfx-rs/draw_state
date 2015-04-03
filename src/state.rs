@@ -167,8 +167,8 @@ impl Default for StencilSide {
         StencilSide {
             fun: Comparison::Always,
             value: 0,
-            mask_read: -1,
-            mask_write: -1,
+            mask_read: target::Stencil::max_value(),
+            mask_write: target::Stencil::max_value(),
             op_fail: StencilOp::Keep,
             op_depth_fail: StencilOp::Keep,
             op_pass: StencilOp::Keep,

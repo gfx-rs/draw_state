@@ -105,8 +105,8 @@ impl DrawState {
         let side = state::StencilSide {
             fun: fun,
             value: value,
-            mask_read: -1,
-            mask_write: -1,
+            mask_read: Stencil::max_value(),
+            mask_write: Stencil::max_value(),
             op_fail: StencilOp::Keep,
             op_depth_fail: StencilOp::Keep,
             op_pass: StencilOp::Keep,
