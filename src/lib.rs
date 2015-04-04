@@ -14,7 +14,6 @@
 
 //! Graphics state blocks for gfx-rs
 
-#![feature(unsafe_destructor)]
 #![deny(missing_docs, missing_copy_implementations)]
 
 #[macro_use]
