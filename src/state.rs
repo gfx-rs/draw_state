@@ -311,7 +311,8 @@ bitflags!(
         const GREEN   = 0x2,
         const BLUE    = 0x4,
         const ALPHA   = 0x8,
-        const MASK_ALL = 0xF
+        const MASK_ALL = 0xF,
+        const MASK_NONE = 0x0
     }
 );
 
