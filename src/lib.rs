@@ -126,6 +126,12 @@ impl DrawState {
         self
     }
 
+    /// Set the scissor
+    pub fn scissor(mut self, x: u16, y: u16, w: u16, h: u16) -> DrawState {
+        self.scissor = Some(target::Rect { x: x, y: y, w: w, h: h });
+        self
+    }
+
     /// Set the blend mode to one of the presets
     pub fn blend(mut self, preset: BlendPreset) -> DrawState {
         self.blend = Some(match preset {
