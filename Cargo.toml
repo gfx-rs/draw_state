@@ -14,7 +14,7 @@
 
 [package]
 name = "draw_state"
-version = "0.0.6"
+version = "0.0.7"
 description = "Graphics state blocks for gfx-rs"
 homepage = "https://github.com/gfx-rs/draw_state"
 repository = "https://github.com/gfx-rs/draw_state"
