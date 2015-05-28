@@ -26,7 +26,7 @@ use state::{BlendValue, CullFace, Equation, RasterMethod, StencilOp, FrontFace};
 use target::{Mask, Rect, Stencil};
 
 /// An assembly of states that affect regular draw calls
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
 pub struct DrawState {
     /// How to rasterize geometric primitives.
     pub primitive: state::Primitive,
@@ -47,7 +47,7 @@ pub struct DrawState {
 }
 
 /// Blend function presets for ease of use.
-#[derive(Copy, Clone, PartialEq, Debug, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
 pub enum BlendPreset {
     /// When combining two fragments, add their values together, saturating at 1.0
     Add,
