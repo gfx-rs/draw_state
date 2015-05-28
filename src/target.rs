@@ -29,7 +29,7 @@ pub type Stencil = u8;
 
 /// A screen space rectangle
 #[allow(missing_docs)]
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -69,7 +69,7 @@ bitflags!(
 );
 
 /// How to clear a frame.
-#[derive(Copy)]
+#[derive(Copy, Clone, PartialEq, PartialOrd)]
 pub struct ClearData {
     /// The color to clear the frame with
     pub color: ColorValue,
@@ -77,16 +77,6 @@ pub struct ClearData {
     pub depth: Depth,
     /// The stencil value to clear the frame with
     pub stencil: Stencil,
-}
-
-impl Clone for ClearData {
-    fn clone(&self) -> ClearData {
-        ClearData {
-            color: self.color,
-            depth: self.depth,
-            stencil: self.stencil,
-        }
-    }
 }
 
 impl fmt::Debug for ClearData {
