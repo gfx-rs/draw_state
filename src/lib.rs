@@ -26,6 +26,7 @@ use state::{BlendValue, CullFace, Equation, RasterMethod, StencilOp, FrontFace};
 use target::{Mask, Rect, Stencil};
 
 /// An assembly of states that affect regular draw calls
+#[must_use]
 #[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
 pub struct DrawState {
     /// How to rasterize geometric primitives.
