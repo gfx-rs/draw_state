@@ -53,15 +53,8 @@ bitflags!(
     }
 );
 
-impl fmt::Debug for Mask {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Mask({})", self.bits())
-    }
-}
-
 bitflags!(
     /// Mirroring flags, used for blitting
-    #[derive(Debug)]
     flags Mirror: u8 {
         const MIRROR_X  = 0x01,
         const MIRROR_Y  = 0x02,
