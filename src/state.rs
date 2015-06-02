@@ -297,29 +297,3 @@ bitflags!(
         const MASK_NONE = 0x0
     }
 );
-
-impl fmt::Debug for ColorMask {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let values = [
-            (RED,   "Red"  ),
-            (GREEN, "Green"),
-            (BLUE,  "Blue" ),
-            (ALPHA, "Alpha"),
-        ];
-
-        try!(write!(f, "ColorMask("));
-        for (i, &(_, name)) in values.iter()
-            .filter(|&&(flag, _)| self.contains(flag))
-            .enumerate()
-        {
-            if i == 0 {
-                try!(write!(f, "{}", name))
-            } else {
-                try!(write!(f, " | {}", name))
-            }
-        }
-        try!(write!(f, ")"));
-
-        Ok(())
-    }
-}
