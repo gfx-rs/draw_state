@@ -289,11 +289,17 @@ impl fmt::Debug for Blend {
 bitflags!(
     #[allow(missing_docs)]
     flags ColorMask: u32 {  //u8 is preferred, but doesn't seem to work well
+        #[allow(missing_docs)]
         const RED     = 0x1,
+        #[allow(missing_docs)]
         const GREEN   = 0x2,
+        #[allow(missing_docs)]
         const BLUE    = 0x4,
+        #[allow(missing_docs)]
         const ALPHA   = 0x8,
+        #[allow(missing_docs)]
         const MASK_ALL = 0xF,
+        #[allow(missing_docs)]
         const MASK_NONE = 0x0
     }
 );
