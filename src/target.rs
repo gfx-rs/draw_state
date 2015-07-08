@@ -43,12 +43,19 @@ pub type ColorValue = [f32; 4];
 bitflags!(
     /// Output mask, used for blitting and clearing
     flags Mask: u8 {
+        #[allow(missing_docs)]
         const COLOR     = 0x01,
+        #[allow(missing_docs)]
         const COLOR0    = 0x01,
+        #[allow(missing_docs)]
         const COLOR1    = 0x02,
+        #[allow(missing_docs)]
         const COLOR2    = 0x04,
+        #[allow(missing_docs)]
         const COLOR3    = 0x08,
+        #[allow(missing_docs)]
         const DEPTH     = 0x40,
+        #[allow(missing_docs)]
         const STENCIL   = 0x80
     }
 );
@@ -56,7 +63,9 @@ bitflags!(
 bitflags!(
     /// Mirroring flags, used for blitting
     flags Mirror: u8 {
+        #[allow(missing_docs)]
         const MIRROR_X  = 0x01,
+        #[allow(missing_docs)]
         const MIRROR_Y  = 0x02,
     }
 );
