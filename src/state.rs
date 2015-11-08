@@ -31,15 +31,19 @@ pub enum FrontFace {
 }
 
 /// Width of a line.
-pub type LineWidth = f32;
-#[allow(missing_docs)]
-pub type OffsetFactor = f32;
-#[allow(missing_docs)]
-pub type OffsetUnits = u32;
+/// Could be f32 if not for Hash deriving issues.
+pub type LineWidth = i32;
+/// Slope depth offset factor
+/// Could be f32 if not for Hash deriving issues.
+pub type OffsetSlope = i32;
+/// Number of units to offset, where
+/// the unit is the minimal difference in the depth value
+/// dictated by the precision of the depth buffer.
+pub type OffsetUnits = i32;
 
 /// How to offset vertices in screen space, if at all.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
-pub struct Offset(pub OffsetFactor, pub OffsetUnits);
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
+pub struct Offset(pub OffsetSlope, pub OffsetUnits);
 
 /// Which face, if any, to cull.
 #[allow(missing_docs)]
@@ -51,7 +55,7 @@ pub enum CullFace {
 }
 
 /// How to rasterize a primitive.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub enum RasterMethod {
     /// Rasterize as a point.
     Point,
@@ -63,7 +67,7 @@ pub enum RasterMethod {
 
 /// Primitive rasterization state. Note that GL allows different raster
 /// method to be used for front and back, while this abstraction does not.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub struct Primitive {
     /// Which vertex winding is considered to be the front face for culling.
     pub front_face: FrontFace,
@@ -147,8 +151,6 @@ pub enum StencilOp {
 pub struct StencilSide {
     /// Comparison function to use to determine if the stencil test passes.
     pub fun: Comparison,
-    /// Reference value to compare the value in the stencil buffer with.
-    pub value: target::Stencil,
     /// A mask that is ANDd with both the stencil buffer value and the reference value when they
     /// are read before doing the stencil test.
     pub mask_read: target::Stencil,
@@ -166,7 +168,6 @@ impl Default for StencilSide {
     fn default() -> StencilSide {
         StencilSide {
             fun: Comparison::Always,
-            value: 0,
             mask_read: target::Stencil::max_value(),
             mask_write: target::Stencil::max_value(),
             op_fail: StencilOp::Keep,
@@ -182,6 +183,19 @@ impl Default for StencilSide {
 pub struct Stencil {
     pub front: StencilSide,
     pub back: StencilSide,
+    pub front_ref: target::Stencil,
+    pub back_ref: target::Stencil,
+}
+
+impl Default for Stencil {
+    fn default() -> Stencil {
+        Stencil {
+            front: Default::default(),
+            back: Default::default(),
+            front_ref: 0,
+            back_ref: 0,
+        }
+    }
 }
 
 /// Depth test state.
@@ -262,11 +276,13 @@ impl Default for BlendChannel {
 }
 
 #[allow(missing_docs)]
-#[derive(Copy, Clone, PartialOrd, PartialEq)]
+#[derive(Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub struct Blend {
     pub color: BlendChannel,
     pub alpha: BlendChannel,
-    pub value: target::ColorValue,
+    /// Color mask to use. Each flag indicates that the given color channel can be written to, and
+    /// they can be OR'd together.
+    pub mask: ColorMask,
 }
 
 impl Default for Blend {
@@ -274,21 +290,21 @@ impl Default for Blend {
         Blend {
             color: Default::default(),
             alpha: Default::default(),
-            value: [0.0, 0.0, 0.0, 0.0],
+            mask: MASK_ALL,
         }
     }
 }
 
 impl fmt::Debug for Blend {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Blend {{ color: {:?}, alpha: {:?}, value: {:?} }}",
-               self.color, self.alpha, &self.value[..])
+        write!(f, "Blend {{ color: {:?}, alpha: {:?}, mask: {:?} }}",
+               self.color, self.alpha, self.mask)
     }
 }
 
 bitflags!(
     #[allow(missing_docs)]
-    flags ColorMask: u32 {  //u8 is preferred, but doesn't seem to work well
+    flags ColorMask: u8 {
         #[allow(missing_docs)]
         const RED     = 0x1,
         #[allow(missing_docs)]

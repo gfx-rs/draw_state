@@ -29,7 +29,7 @@ pub type Stencil = u8;
 
 /// A screen space rectangle
 #[allow(missing_docs)]
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, PartialOrd)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,

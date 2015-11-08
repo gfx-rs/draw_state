@@ -25,9 +25,15 @@ pub mod target;
 use state::{BlendValue, CullFace, Equation, RasterMethod, StencilOp, FrontFace};
 use target::{Mask, Rect, Stencil};
 
-/// An assembly of states that affect regular draw calls
+/// Compile-time maximum MRT count.
+pub const MAX_COLOR_TARGETS:      usize = 4;
+
+/// An assembly of states that affect regular draw calls.
+/// Note: reference values are separated from their control blocks
+/// due to the fact they can be provided separately from the state setup
+/// on the modern hardware (DX11+).
 #[must_use]
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct DrawState {
     /// How to rasterize geometric primitives.
     pub primitive: state::Primitive,
@@ -41,14 +47,13 @@ pub struct DrawState {
     /// Depth test to use. If None, no depth testing is done.
     pub depth: Option<state::Depth>,
     /// Blend function to use. If None, no blending is done.
-    pub blend: Option<state::Blend>,
-    /// Color mask to use. Each flag indicates that the given color channel can be written to, and
-    /// they can be OR'd together.
-    pub color_mask: state::ColorMask,
+    pub blend: [Option<state::Blend>; MAX_COLOR_TARGETS],
+    /// A constant blend value.
+    pub blend_value: target::ColorValue,
 }
 
 /// Blend function presets for ease of use.
-#[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum BlendPreset {
     /// When combining two fragments, add their values together, saturating at 1.0
     Add,
@@ -81,17 +86,20 @@ impl DrawState {
             scissor: None,
             stencil: None,
             depth: None,
-            blend: None,
-            color_mask: state::MASK_ALL,
+            blend: [None; MAX_COLOR_TARGETS],
+            blend_value: [0f32; 4],
         }
     }
 
     /// Return a target mask that contains all the planes required by this state.
     pub fn get_target_mask(&self) -> Mask {
         use target as t;
-        (if self.stencil.is_some() {t::STENCIL} else {Mask::empty()}) |
-        (if self.depth.is_some()   {t::DEPTH}   else {Mask::empty()}) |
-        (if self.blend.is_some()   {t::COLOR}   else {Mask::empty()})
+        (if self.stencil.is_some()  {t::STENCIL} else {Mask::empty()}) |
+        (if self.depth.is_some()    {t::DEPTH}   else {Mask::empty()}) |
+        (if self.blend[0].is_some() {t::COLOR0}  else {Mask::empty()}) |
+        (if self.blend[1].is_some() {t::COLOR1}  else {Mask::empty()}) |
+        (if self.blend[2].is_some() {t::COLOR2}  else {Mask::empty()}) |
+        (if self.blend[3].is_some() {t::COLOR3}  else {Mask::empty()})
     }
 
     /// Enable multi-sampled rasterization
@@ -104,7 +112,6 @@ impl DrawState {
     pub fn stencil(mut self, fun: state::Comparison, value: Stencil) -> DrawState {
         let side = state::StencilSide {
             fun: fun,
-            value: value,
             mask_read: Stencil::max_value(),
             mask_write: Stencil::max_value(),
             op_fail: StencilOp::Keep,
@@ -114,6 +121,8 @@ impl DrawState {
         self.stencil = Some(state::Stencil {
             front: side,
             back: side,
+            front_ref: value,
+            back_ref: value,
         });
         self
     }
@@ -135,7 +144,7 @@ impl DrawState {
 
     /// Set the blend mode to one of the presets
     pub fn blend(mut self, preset: BlendPreset) -> DrawState {
-        self.blend = Some(match preset {
+        self.blend[0] = Some(match preset {
             BlendPreset::Add => state::Blend {
                 color: state::BlendChannel {
                     equation: Equation::Add,
@@ -147,7 +156,7 @@ impl DrawState {
                     source: state::Factor::One,
                     destination: state::Factor::One,
                 },
-                value: [0.0, 0.0, 0.0, 0.0],
+                mask: state::MASK_ALL,
             },
             BlendPreset::Multiply => state::Blend {
                 color: state::BlendChannel {
@@ -160,7 +169,7 @@ impl DrawState {
                     source: state::Factor::ZeroPlus(BlendValue::DestAlpha),
                     destination: state::Factor::Zero,
                 },
-                value: [0.0, 0.0, 0.0, 0.0],
+                mask: state::MASK_ALL,
             },
             BlendPreset::Alpha => state::Blend {
                 color: state::BlendChannel {
@@ -173,7 +182,7 @@ impl DrawState {
                     source: state::Factor::One,
                     destination: state::Factor::One,
                 },
-                value: [0.0, 0.0, 0.0, 0.0],
+                mask: state::MASK_ALL,
             },
             BlendPreset::Invert => state::Blend {
                 color: state::BlendChannel {
@@ -186,7 +195,7 @@ impl DrawState {
                     source: state::Factor::Zero,
                     destination: state::Factor::One,
                 },
-                value: [1.0, 1.0, 1.0, 1.0],
+                mask: state::MASK_ALL,
             },
         });
         self
