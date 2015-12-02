@@ -65,6 +65,16 @@ pub enum RasterMethod {
     Fill(CullFace),
 }
 
+impl RasterMethod {
+    /// Get the cull face, if any, for this primitive state.
+    pub fn get_cull_face(&self) -> CullFace {
+        match self {
+            &RasterMethod::Fill(mode) => mode,
+            _ => CullFace::Nothing,
+        }
+    }
+}
+
 /// Primitive rasterization state. Note that GL allows different raster
 /// method to be used for front and back, while this abstraction does not.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
@@ -75,16 +85,6 @@ pub struct Primitive {
     pub method: RasterMethod,
     /// Any polygon offset to apply.
     pub offset: Option<Offset>,
-}
-
-impl Primitive {
-    /// Get the cull face, if any, for this primitive state.
-    pub fn get_cull_face(&self) -> CullFace {
-        match self.method {
-            RasterMethod::Fill(mode) => mode,
-            _ => CullFace::Nothing,
-        }
-    }
 }
 
 impl Default for Primitive {
