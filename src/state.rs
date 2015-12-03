@@ -183,8 +183,6 @@ impl Default for StencilSide {
 pub struct Stencil {
     pub front: StencilSide,
     pub back: StencilSide,
-    pub front_ref: target::Stencil,
-    pub back_ref: target::Stencil,
 }
 
 impl Default for Stencil {
@@ -192,8 +190,6 @@ impl Default for Stencil {
         Stencil {
             front: Default::default(),
             back: Default::default(),
-            front_ref: 0,
-            back_ref: 0,
         }
     }
 }
@@ -319,3 +315,22 @@ bitflags!(
         const MASK_NONE = 0x0
     }
 );
+
+/// The complete set of the rasterizer reference values.
+/// Switching these doesn't roll the hardware context.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+pub struct RefValues {
+    /// Stencil front and back values.
+    pub stencil: (target::Stencil, target::Stencil),
+    /// Constant blend color.
+    pub blend: [f32; 4],
+}
+
+impl Default for RefValues {
+    fn default() -> RefValues {
+        RefValues {
+            stencil: (0, 0),
+            blend: [0f32; 4],
+        }
+    }
+}

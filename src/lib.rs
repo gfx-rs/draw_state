@@ -22,7 +22,7 @@ extern crate bitflags;
 pub mod state;
 pub mod target;
 
-use state::{BlendValue, CullFace, Equation, RasterMethod, StencilOp, FrontFace};
+use state::{BlendValue, CullFace, Equation, FrontFace, RasterMethod, RefValues, StencilOp};
 use target::{Mask, Rect, Stencil};
 
 /// Compile-time maximum MRT count.
@@ -48,8 +48,8 @@ pub struct DrawState {
     pub depth: Option<state::Depth>,
     /// Blend function to use. If None, no blending is done.
     pub blend: [Option<state::Blend>; MAX_COLOR_TARGETS],
-    /// A constant blend value.
-    pub blend_value: target::ColorValue,
+    /// A set of reference values.
+    pub ref_values: RefValues,
 }
 
 /// Blend function presets for ease of use.
@@ -87,7 +87,7 @@ impl DrawState {
             stencil: None,
             depth: None,
             blend: [None; MAX_COLOR_TARGETS],
-            blend_value: [0f32; 4],
+            ref_values: Default::default(),
         }
     }
 
@@ -121,9 +121,8 @@ impl DrawState {
         self.stencil = Some(state::Stencil {
             front: side,
             back: side,
-            front_ref: value,
-            back_ref: value,
         });
+        self.ref_values.stencil = (value, value);
         self
     }
 
