@@ -323,7 +323,7 @@ pub struct RefValues {
     /// Stencil front and back values.
     pub stencil: (target::Stencil, target::Stencil),
     /// Constant blend color.
-    pub blend: [f32; 4],
+    pub blend: target::ColorValue,
 }
 
 impl Default for RefValues {
