@@ -22,8 +22,6 @@ extern crate bitflags;
 pub mod state;
 pub mod target;
 
-use state::{BlendValue, CullFace, Equation, FrontFace, RasterMethod, RefValues, StencilOp};
-use target::{Mask, Rect, Stencil};
 
 /// Compile-time maximum MRT count.
 pub const MAX_COLOR_TARGETS:      usize = 4;
@@ -36,12 +34,10 @@ pub const MAX_COLOR_TARGETS:      usize = 4;
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct DrawState {
     /// How to rasterize geometric primitives.
-    pub primitive: state::Primitive,
-    /// Multi-sampling mode
-    pub multi_sample: Option<state::MultiSample>,
+    pub rasterizer: state::Rasterizer,
     /// Scissor mask to use. If set, no pixel outside of this rectangle (in screen space) will be
     /// written to as a result of rendering.
-    pub scissor: Option<Rect>,
+    pub scissor: Option<target::Rect>,
     /// Stencil test to use. If None, no stencil testing is done.
     pub stencil: Option<state::Stencil>,
     /// Depth test to use. If None, no depth testing is done.
@@ -49,7 +45,7 @@ pub struct DrawState {
     /// Blend function to use. If None, no blending is done.
     pub blend: [Option<state::Blend>; MAX_COLOR_TARGETS],
     /// A set of reference values.
-    pub ref_values: RefValues,
+    pub ref_values: state::RefValues,
 }
 
 /// Blend function presets for ease of use.
@@ -77,12 +73,7 @@ impl DrawState {
     /// primitive, and does no scissor/stencil/depth/blend/color masking.
     pub fn new() -> DrawState {
         DrawState {
-            primitive: state::Primitive {
-                front_face: FrontFace::CounterClockwise,
-                method: RasterMethod::Fill(CullFace::Back),
-                offset: None,
-            },
-            multi_sample: None,
+            rasterizer: Default::default(),
             scissor: None,
             stencil: None,
             depth: None,
@@ -92,28 +83,29 @@ impl DrawState {
     }
 
     /// Return a target mask that contains all the planes required by this state.
-    pub fn get_target_mask(&self) -> Mask {
+    pub fn get_target_mask(&self) -> target::Mask {
         use target as t;
-        (if self.stencil.is_some()  {t::STENCIL} else {Mask::empty()}) |
-        (if self.depth.is_some()    {t::DEPTH}   else {Mask::empty()}) |
-        (if self.blend[0].is_some() {t::COLOR0}  else {Mask::empty()}) |
-        (if self.blend[1].is_some() {t::COLOR1}  else {Mask::empty()}) |
-        (if self.blend[2].is_some() {t::COLOR2}  else {Mask::empty()}) |
-        (if self.blend[3].is_some() {t::COLOR3}  else {Mask::empty()})
+        (if self.stencil.is_some()  {t::STENCIL} else {t::Mask::empty()}) |
+        (if self.depth.is_some()    {t::DEPTH}   else {t::Mask::empty()}) |
+        (if self.blend[0].is_some() {t::COLOR0}  else {t::Mask::empty()}) |
+        (if self.blend[1].is_some() {t::COLOR1}  else {t::Mask::empty()}) |
+        (if self.blend[2].is_some() {t::COLOR2}  else {t::Mask::empty()}) |
+        (if self.blend[3].is_some() {t::COLOR3}  else {t::Mask::empty()})
     }
 
     /// Enable multi-sampled rasterization
     pub fn multi_sample(mut self) -> DrawState {
-        self.multi_sample = Some(state::MultiSample);
+        self.rasterizer.samples = Some(state::MultiSample);
         self
     }
 
     /// Set the stencil test to a simple expression
-    pub fn stencil(mut self, fun: state::Comparison, value: Stencil) -> DrawState {
+    pub fn stencil(mut self, fun: state::Comparison, value: target::Stencil) -> DrawState {
+        use state::StencilOp;
         let side = state::StencilSide {
             fun: fun,
-            mask_read: Stencil::max_value(),
-            mask_write: Stencil::max_value(),
+            mask_read: target::Stencil::max_value(),
+            mask_write: target::Stencil::max_value(),
             op_fail: StencilOp::Keep,
             op_depth_fail: StencilOp::Keep,
             op_pass: StencilOp::Keep,
@@ -143,56 +135,57 @@ impl DrawState {
 
     /// Set the blend mode to one of the presets
     pub fn blend(mut self, preset: BlendPreset) -> DrawState {
+        use state::{BlendChannel, BlendValue, Equation, Factor};
         self.blend[0] = Some(match preset {
             BlendPreset::Add => state::Blend {
-                color: state::BlendChannel {
+                color: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::One,
-                    destination: state::Factor::One,
+                    source: Factor::One,
+                    destination: Factor::One,
                 },
-                alpha: state::BlendChannel {
+                alpha: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::One,
-                    destination: state::Factor::One,
+                    source: Factor::One,
+                    destination: Factor::One,
                 },
                 mask: state::MASK_ALL,
             },
             BlendPreset::Multiply => state::Blend {
-                color: state::BlendChannel {
+                color: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::ZeroPlus(BlendValue::DestColor),
-                    destination: state::Factor::Zero,
+                    source: Factor::ZeroPlus(BlendValue::DestColor),
+                    destination: Factor::Zero,
                 },
-                alpha: state::BlendChannel {
+                alpha: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::ZeroPlus(BlendValue::DestAlpha),
-                    destination: state::Factor::Zero,
+                    source: Factor::ZeroPlus(BlendValue::DestAlpha),
+                    destination: Factor::Zero,
                 },
                 mask: state::MASK_ALL,
             },
             BlendPreset::Alpha => state::Blend {
-                color: state::BlendChannel {
+                color: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::ZeroPlus(BlendValue::SourceAlpha),
-                    destination: state::Factor::OneMinus(BlendValue::SourceAlpha),
+                    source: Factor::ZeroPlus(BlendValue::SourceAlpha),
+                    destination: Factor::OneMinus(BlendValue::SourceAlpha),
                 },
-                alpha: state::BlendChannel {
+                alpha: BlendChannel {
                     equation: Equation::Add,
-                    source: state::Factor::One,
-                    destination: state::Factor::One,
+                    source: Factor::One,
+                    destination: Factor::One,
                 },
                 mask: state::MASK_ALL,
             },
             BlendPreset::Invert => state::Blend {
-                color: state::BlendChannel {
+                color: BlendChannel {
                     equation: Equation::Sub,
-                    source: state::Factor::ZeroPlus(state::BlendValue::ConstColor),
-                    destination: state::Factor::ZeroPlus(state::BlendValue::SourceColor),
+                    source: Factor::ZeroPlus(BlendValue::ConstColor),
+                    destination: Factor::ZeroPlus(BlendValue::SourceColor),
                 },
-                alpha: state::BlendChannel {
-                    equation: state::Equation::Add,
-                    source: state::Factor::Zero,
-                    destination: state::Factor::One,
+                alpha: BlendChannel {
+                    equation: Equation::Add,
+                    source: Factor::Zero,
+                    destination: Factor::One,
                 },
                 mask: state::MASK_ALL,
             },

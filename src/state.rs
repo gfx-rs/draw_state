@@ -75,33 +75,36 @@ impl RasterMethod {
     }
 }
 
+/// Multi-sampling rasterization mode
+#[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
+pub struct MultiSample;
+    //sample_mask: u16,
+    //alpha_to_coverage: bool,
+
 /// Primitive rasterization state. Note that GL allows different raster
 /// method to be used for front and back, while this abstraction does not.
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
-pub struct Primitive {
+pub struct Rasterizer {
     /// Which vertex winding is considered to be the front face for culling.
     pub front_face: FrontFace,
     /// How to rasterize this primitive.
     pub method: RasterMethod,
     /// Any polygon offset to apply.
     pub offset: Option<Offset>,
+    /// Multi-sampling mode.
+    pub samples: Option<MultiSample>,
 }
 
-impl Default for Primitive {
-    fn default() -> Primitive {
-        Primitive {
+impl Default for Rasterizer {
+    fn default() -> Rasterizer {
+        Rasterizer {
             front_face: FrontFace::CounterClockwise,
             method: RasterMethod::Fill(CullFace::Nothing),
             offset: None,
+            samples: None,
         }
     }
 }
-
-/// Multi-sampling rasterization mode
-#[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
-pub struct MultiSample;
-    //sample_mask: u16,
-    //alpha_to_coverage: bool,
 
 /// A pixel-wise comparison function.
 #[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
