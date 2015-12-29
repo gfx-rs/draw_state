@@ -73,7 +73,7 @@ impl DrawState {
     /// primitive, and does no scissor/stencil/depth/blend/color masking.
     pub fn new() -> DrawState {
         DrawState {
-            rasterizer: Default::default(),
+            rasterizer: state::Rasterizer::new_fill(state::CullFace::Nothing),
             scissor: None,
             stencil: None,
             depth: None,

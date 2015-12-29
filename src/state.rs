@@ -95,13 +95,21 @@ pub struct Rasterizer {
     pub samples: Option<MultiSample>,
 }
 
-impl Default for Rasterizer {
-    fn default() -> Rasterizer {
+impl Rasterizer {
+    /// Create a new filling rasterizer.
+    pub fn new_fill(cull: CullFace) -> Rasterizer {
         Rasterizer {
             front_face: FrontFace::CounterClockwise,
-            method: RasterMethod::Fill(CullFace::Nothing),
+            method: RasterMethod::Fill(cull),
             offset: None,
             samples: None,
+        }
+    }
+    /// Add polygon offset.
+    pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Rasterizer {
+        Rasterizer {
+            offset: Some(Offset(slope as OffsetSlope, units)),
+            ..self
         }
     }
 }
@@ -193,6 +201,26 @@ impl Default for Stencil {
         Stencil {
             front: Default::default(),
             back: Default::default(),
+        }
+    }
+}
+
+impl Stencil {
+    /// Create a new stencil state with a given function.
+    pub fn new(fun: Comparison, mask: target::Stencil,
+               ops: (StencilOp, StencilOp, StencilOp))
+               -> Stencil {
+        let side = StencilSide {
+            fun: fun,
+            mask_read: mask,
+            mask_write: mask,
+            op_fail: ops.0,
+            op_depth_fail: ops.1,
+            op_pass: ops.2,
+        };
+        Stencil {
+            front: side,
+            back: side,
         }
     }
 }
@@ -289,6 +317,22 @@ impl Default for Blend {
         Blend {
             color: Default::default(),
             alpha: Default::default(),
+            mask: MASK_ALL,
+        }
+    }
+}
+
+impl Blend {
+    /// Create a new blend state with a given equation.
+    pub fn new(eq: Equation, src: Factor, dst: Factor) -> Blend {
+        let chan = BlendChannel {
+            equation: eq,
+            source: src,
+            destination: dst,
+        };
+        Blend {
+            color: chan,
+            alpha: chan,
             mask: MASK_ALL,
         }
     }
