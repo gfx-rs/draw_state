@@ -19,11 +19,9 @@
 #[macro_use]
 extern crate bitflags;
 
-mod preset;
+pub mod preset;
 pub mod state;
 pub mod target;
-
-pub use preset::{blend};
 
 
 /// Compile-time maximum MRT count.
