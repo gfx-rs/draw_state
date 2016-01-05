@@ -85,3 +85,20 @@ pub mod blend {
         mask: MASK_ALL,
     };
 }
+
+/// Depth preset modes.
+pub mod depth {
+    use state::{Comparison, Depth};
+
+    /// "<=" comparison with read-only depth
+    pub const LESS_EQUAL_TEST: Depth = Depth {
+        fun: Comparison::LessEqual,
+        write: false,
+    };
+
+    /// "<=" comparison with writable depth
+    pub const LESS_EQUAL_WRITE: Depth = Depth {
+        fun: Comparison::LessEqual,
+        write: true,
+    };
+}
