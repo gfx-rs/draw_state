@@ -307,9 +307,6 @@ impl Default for BlendChannel {
 pub struct Blend {
     pub color: BlendChannel,
     pub alpha: BlendChannel,
-    /// Color mask to use. Each flag indicates that the given color channel can be written to, and
-    /// they can be OR'd together.
-    pub mask: ColorMask,
 }
 
 impl Default for Blend {
@@ -317,7 +314,6 @@ impl Default for Blend {
         Blend {
             color: Default::default(),
             alpha: Default::default(),
-            mask: MASK_ALL,
         }
     }
 }
@@ -333,15 +329,14 @@ impl Blend {
         Blend {
             color: chan,
             alpha: chan,
-            mask: MASK_ALL,
         }
     }
 }
 
 impl fmt::Debug for Blend {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Blend {{ color: {:?}, alpha: {:?}, mask: {:?} }}",
-               self.color, self.alpha, self.mask)
+        write!(f, "Blend {{ color: {:?}, alpha: {:?}}}",
+               self.color, self.alpha)
     }
 }
 
@@ -362,6 +357,24 @@ bitflags!(
         const MASK_NONE = 0x0
     }
 );
+
+/// The state of an active color render target
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+pub struct Color {
+    /// Color mask to use.
+    pub mask: ColorMask,
+    /// Optional blending.
+    pub blend: Option<Blend>,
+}
+
+impl Default for Color {
+    fn default() -> Color {
+        Color {
+            mask: MASK_ALL,
+            blend: None,
+        }
+    }
+}
 
 /// The complete set of the rasterizer reference values.
 /// Switching these doesn't roll the hardware context.

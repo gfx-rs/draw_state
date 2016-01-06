@@ -16,7 +16,7 @@
 
 /// Blending preset modes.
 pub mod blend {
-	use state::{Blend, BlendChannel, BlendValue, Equation, Factor, MASK_ALL};
+	use state::{Blend, BlendChannel, BlendValue, Equation, Factor};
 
 	/// When combining two fragments, add their values together, saturating at 1.0
 	pub const ADD: Blend = Blend {
@@ -30,7 +30,6 @@ pub mod blend {
             source: Factor::One,
             destination: Factor::One,
         },
-        mask: MASK_ALL,
     };
 
     /// When combining two fragments, multiply their values together.
@@ -45,7 +44,6 @@ pub mod blend {
             source: Factor::ZeroPlus(BlendValue::DestAlpha),
             destination: Factor::Zero,
         },
-        mask: MASK_ALL,
     };
 
     /// When combining two fragments, add the value of the source times its alpha channel with the
@@ -63,7 +61,6 @@ pub mod blend {
             source: Factor::One,
             destination: Factor::One,
         },
-        mask: MASK_ALL,
     };
 
     /// When combining two fragments, subtract the destination color from a constant color
@@ -82,7 +79,6 @@ pub mod blend {
             source: Factor::Zero,
             destination: Factor::One,
         },
-        mask: MASK_ALL,
     };
 }
 

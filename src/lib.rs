@@ -43,8 +43,8 @@ pub struct DrawState {
     pub stencil: Option<state::Stencil>,
     /// Depth test to use. If None, no depth testing is done.
     pub depth: Option<state::Depth>,
-    /// Blend function to use. If None, no blending is done.
-    pub blend: [Option<state::Blend>; MAX_COLOR_TARGETS],
+    /// Color buffers descriptors.
+    pub colors: [state::Color; MAX_COLOR_TARGETS],
     /// A set of reference values.
     pub ref_values: state::RefValues,
 }
@@ -58,7 +58,7 @@ impl DrawState {
             scissor: None,
             stencil: None,
             depth: None,
-            blend: [None; MAX_COLOR_TARGETS],
+            colors: [Default::default(); MAX_COLOR_TARGETS],
             ref_values: Default::default(),
         }
     }
@@ -68,10 +68,11 @@ impl DrawState {
         use target as t;
         (if self.stencil.is_some()  {t::STENCIL} else {t::Mask::empty()}) |
         (if self.depth.is_some()    {t::DEPTH}   else {t::Mask::empty()}) |
-        (if self.blend[0].is_some() {t::COLOR0}  else {t::Mask::empty()}) |
-        (if self.blend[1].is_some() {t::COLOR1}  else {t::Mask::empty()}) |
-        (if self.blend[2].is_some() {t::COLOR2}  else {t::Mask::empty()}) |
-        (if self.blend[3].is_some() {t::COLOR3}  else {t::Mask::empty()})
+        //note: this is incorrect. Blending == OFF doesn't mean there is no target!
+        (if self.colors[0].blend.is_some() {t::COLOR0}  else {t::Mask::empty()}) |
+        (if self.colors[1].blend.is_some() {t::COLOR1}  else {t::Mask::empty()}) |
+        (if self.colors[2].blend.is_some() {t::COLOR2}  else {t::Mask::empty()}) |
+        (if self.colors[3].blend.is_some() {t::COLOR3}  else {t::Mask::empty()})
     }
 
     /// Enable multi-sampled rasterization
@@ -105,6 +106,12 @@ impl DrawState {
             fun: fun,
             write: write,
         });
+        self
+    }
+
+    /// Set the blend mode of the first color buffer.
+    pub fn blend(mut self, blend: state::Blend) -> DrawState {
+        self.colors[0].blend = Some(blend);
         self
     }
 
