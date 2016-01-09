@@ -31,15 +31,19 @@ pub enum FrontFace {
 }
 
 /// Width of a line.
-pub type LineWidth = f32;
-#[allow(missing_docs)]
-pub type OffsetFactor = f32;
-#[allow(missing_docs)]
-pub type OffsetUnits = u32;
+/// Could be f32 if not for Hash deriving issues.
+pub type LineWidth = i32;
+/// Slope depth offset factor
+/// Could be f32 if not for Hash deriving issues.
+pub type OffsetSlope = i32;
+/// Number of units to offset, where
+/// the unit is the minimal difference in the depth value
+/// dictated by the precision of the depth buffer.
+pub type OffsetUnits = i32;
 
 /// How to offset vertices in screen space, if at all.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
-pub struct Offset(pub OffsetFactor, pub OffsetUnits);
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
+pub struct Offset(pub OffsetSlope, pub OffsetUnits);
 
 /// Which face, if any, to cull.
 #[allow(missing_docs)]
@@ -51,7 +55,7 @@ pub enum CullFace {
 }
 
 /// How to rasterize a primitive.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub enum RasterMethod {
     /// Rasterize as a point.
     Point,
@@ -61,34 +65,12 @@ pub enum RasterMethod {
     Fill(CullFace),
 }
 
-/// Primitive rasterization state. Note that GL allows different raster
-/// method to be used for front and back, while this abstraction does not.
-#[derive(Copy, Clone, PartialEq, Debug, PartialOrd)]
-pub struct Primitive {
-    /// Which vertex winding is considered to be the front face for culling.
-    pub front_face: FrontFace,
-    /// How to rasterize this primitive.
-    pub method: RasterMethod,
-    /// Any polygon offset to apply.
-    pub offset: Option<Offset>,
-}
-
-impl Primitive {
+impl RasterMethod {
     /// Get the cull face, if any, for this primitive state.
     pub fn get_cull_face(&self) -> CullFace {
-        match self.method {
-            RasterMethod::Fill(mode) => mode,
+        match self {
+            &RasterMethod::Fill(mode) => mode,
             _ => CullFace::Nothing,
-        }
-    }
-}
-
-impl Default for Primitive {
-    fn default() -> Primitive {
-        Primitive {
-            front_face: FrontFace::CounterClockwise,
-            method: RasterMethod::Fill(CullFace::Nothing),
-            offset: None,
         }
     }
 }
@@ -98,6 +80,39 @@ impl Default for Primitive {
 pub struct MultiSample;
     //sample_mask: u16,
     //alpha_to_coverage: bool,
+
+/// Primitive rasterization state. Note that GL allows different raster
+/// method to be used for front and back, while this abstraction does not.
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
+pub struct Rasterizer {
+    /// Which vertex winding is considered to be the front face for culling.
+    pub front_face: FrontFace,
+    /// How to rasterize this primitive.
+    pub method: RasterMethod,
+    /// Any polygon offset to apply.
+    pub offset: Option<Offset>,
+    /// Multi-sampling mode.
+    pub samples: Option<MultiSample>,
+}
+
+impl Rasterizer {
+    /// Create a new filling rasterizer.
+    pub fn new_fill(cull: CullFace) -> Rasterizer {
+        Rasterizer {
+            front_face: FrontFace::CounterClockwise,
+            method: RasterMethod::Fill(cull),
+            offset: None,
+            samples: None,
+        }
+    }
+    /// Add polygon offset.
+    pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Rasterizer {
+        Rasterizer {
+            offset: Some(Offset(slope as OffsetSlope, units)),
+            ..self
+        }
+    }
+}
 
 /// A pixel-wise comparison function.
 #[derive(Copy, Clone, PartialEq, Debug, Hash, Eq, PartialOrd, Ord)]
@@ -147,8 +162,6 @@ pub enum StencilOp {
 pub struct StencilSide {
     /// Comparison function to use to determine if the stencil test passes.
     pub fun: Comparison,
-    /// Reference value to compare the value in the stencil buffer with.
-    pub value: target::Stencil,
     /// A mask that is ANDd with both the stencil buffer value and the reference value when they
     /// are read before doing the stencil test.
     pub mask_read: target::Stencil,
@@ -166,7 +179,6 @@ impl Default for StencilSide {
     fn default() -> StencilSide {
         StencilSide {
             fun: Comparison::Always,
-            value: 0,
             mask_read: target::Stencil::max_value(),
             mask_write: target::Stencil::max_value(),
             op_fail: StencilOp::Keep,
@@ -182,6 +194,35 @@ impl Default for StencilSide {
 pub struct Stencil {
     pub front: StencilSide,
     pub back: StencilSide,
+}
+
+impl Default for Stencil {
+    fn default() -> Stencil {
+        Stencil {
+            front: Default::default(),
+            back: Default::default(),
+        }
+    }
+}
+
+impl Stencil {
+    /// Create a new stencil state with a given function.
+    pub fn new(fun: Comparison, mask: target::Stencil,
+               ops: (StencilOp, StencilOp, StencilOp))
+               -> Stencil {
+        let side = StencilSide {
+            fun: fun,
+            mask_read: mask,
+            mask_write: mask,
+            op_fail: ops.0,
+            op_depth_fail: ops.1,
+            op_pass: ops.2,
+        };
+        Stencil {
+            front: side,
+            back: side,
+        }
+    }
 }
 
 /// Depth test state.
@@ -262,11 +303,10 @@ impl Default for BlendChannel {
 }
 
 #[allow(missing_docs)]
-#[derive(Copy, Clone, PartialOrd, PartialEq)]
+#[derive(Copy, Clone, Hash, PartialOrd, PartialEq, Eq)]
 pub struct Blend {
     pub color: BlendChannel,
     pub alpha: BlendChannel,
-    pub value: target::ColorValue,
 }
 
 impl Default for Blend {
@@ -274,21 +314,35 @@ impl Default for Blend {
         Blend {
             color: Default::default(),
             alpha: Default::default(),
-            value: [0.0, 0.0, 0.0, 0.0],
+        }
+    }
+}
+
+impl Blend {
+    /// Create a new blend state with a given equation.
+    pub fn new(eq: Equation, src: Factor, dst: Factor) -> Blend {
+        let chan = BlendChannel {
+            equation: eq,
+            source: src,
+            destination: dst,
+        };
+        Blend {
+            color: chan,
+            alpha: chan,
         }
     }
 }
 
 impl fmt::Debug for Blend {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Blend {{ color: {:?}, alpha: {:?}, value: {:?} }}",
-               self.color, self.alpha, &self.value[..])
+        write!(f, "Blend {{ color: {:?}, alpha: {:?}}}",
+               self.color, self.alpha)
     }
 }
 
 bitflags!(
     #[allow(missing_docs)]
-    flags ColorMask: u32 {  //u8 is preferred, but doesn't seem to work well
+    flags ColorMask: u8 {
         #[allow(missing_docs)]
         const RED     = 0x1,
         #[allow(missing_docs)]
@@ -303,3 +357,40 @@ bitflags!(
         const MASK_NONE = 0x0
     }
 );
+
+/// The state of an active color render target
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+pub struct Color {
+    /// Color mask to use.
+    pub mask: ColorMask,
+    /// Optional blending.
+    pub blend: Option<Blend>,
+}
+
+impl Default for Color {
+    fn default() -> Color {
+        Color {
+            mask: MASK_ALL,
+            blend: None,
+        }
+    }
+}
+
+/// The complete set of the rasterizer reference values.
+/// Switching these doesn't roll the hardware context.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+pub struct RefValues {
+    /// Stencil front and back values.
+    pub stencil: (target::Stencil, target::Stencil),
+    /// Constant blend color.
+    pub blend: target::ColorValue,
+}
+
+impl Default for RefValues {
+    fn default() -> RefValues {
+        RefValues {
+            stencil: (0, 0),
+            blend: [0f32; 4],
+        }
+    }
+}
