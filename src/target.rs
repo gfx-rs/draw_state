@@ -14,8 +14,6 @@
 
 //! Render target specification.
 
-use std::fmt;
-
 // TODO: Really tighten up the terminology here.
 
 /// A depth value, specifying which plane to select out of a 3D texture.
@@ -41,26 +39,6 @@ pub struct Rect {
 pub type ColorValue = [f32; 4];
 
 bitflags!(
-    /// Output mask, used for blitting and clearing
-    flags Mask: u8 {
-        #[allow(missing_docs)]
-        const COLOR     = 0x01,
-        #[allow(missing_docs)]
-        const COLOR0    = 0x01,
-        #[allow(missing_docs)]
-        const COLOR1    = 0x02,
-        #[allow(missing_docs)]
-        const COLOR2    = 0x04,
-        #[allow(missing_docs)]
-        const COLOR3    = 0x08,
-        #[allow(missing_docs)]
-        const DEPTH     = 0x40,
-        #[allow(missing_docs)]
-        const STENCIL   = 0x80
-    }
-);
-
-bitflags!(
     /// Mirroring flags, used for blitting
     flags Mirror: u8 {
         #[allow(missing_docs)]
@@ -69,22 +47,3 @@ bitflags!(
         const MIRROR_Y  = 0x02,
     }
 );
-
-/// How to clear a frame.
-#[derive(Copy, Clone, PartialEq, PartialOrd)]
-pub struct ClearData {
-    /// The color to clear the frame with
-    pub color: ColorValue,
-    /// The depth value to clear the frame with
-    pub depth: Depth,
-    /// The stencil value to clear the frame with
-    pub stencil: Stencil,
-}
-
-impl fmt::Debug for ClearData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-            "ClearData {{ color: {:?}, depth: {:?}, stencil: {:?} }}",
-            &self.color[..], self.depth, self.stencil)
-    }
-}
