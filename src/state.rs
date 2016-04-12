@@ -61,18 +61,8 @@ pub enum RasterMethod {
     Point,
     /// Rasterize as a line with the given width.
     Line(LineWidth),
-    /// Rasterize as a face with a given cull face mode.
-    Fill(CullFace),
-}
-
-impl RasterMethod {
-    /// Get the cull face, if any, for this primitive state.
-    pub fn get_cull_face(&self) -> CullFace {
-        match self {
-            &RasterMethod::Fill(mode) => mode,
-            _ => CullFace::Nothing,
-        }
-    }
+    /// Rasterize as a face.
+    Fill
 }
 
 /// Multi-sampling rasterization mode
@@ -87,6 +77,8 @@ pub struct MultiSample;
 pub struct Rasterizer {
     /// Which vertex winding is considered to be the front face for culling.
     pub front_face: FrontFace,
+    /// Which face should be culled.
+    pub cull_face: CullFace,
     /// How to rasterize this primitive.
     pub method: RasterMethod,
     /// Any polygon offset to apply.
@@ -100,11 +92,13 @@ impl Rasterizer {
     pub fn new_fill(cull: CullFace) -> Rasterizer {
         Rasterizer {
             front_face: FrontFace::CounterClockwise,
-            method: RasterMethod::Fill(cull),
+            cull_face: cull,
+            method: RasterMethod::Fill,
             offset: None,
             samples: None,
         }
     }
+    
     /// Add polygon offset.
     pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Rasterizer {
         Rasterizer {
