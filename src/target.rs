@@ -40,7 +40,7 @@ pub type ColorValue = [f32; 4];
 
 bitflags!(
     /// Mirroring flags, used for blitting
-    flags Mirror: u8 {
+    pub flags Mirror: u8 {
         #[allow(missing_docs)]
         const MIRROR_X  = 0x01,
         #[allow(missing_docs)]
