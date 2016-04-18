@@ -336,7 +336,7 @@ impl fmt::Debug for Blend {
 
 bitflags!(
     #[allow(missing_docs)]
-    flags ColorMask: u8 {
+    pub flags ColorMask: u8 {
         #[allow(missing_docs)]
         const RED     = 0x1,
         #[allow(missing_docs)]
