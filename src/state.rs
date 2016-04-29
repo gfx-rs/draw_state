@@ -89,13 +89,21 @@ pub struct Rasterizer {
 
 impl Rasterizer {
     /// Create a new filling rasterizer.
-    pub fn new_fill(cull: CullFace) -> Rasterizer {
+    pub fn new_fill() -> Rasterizer {
         Rasterizer {
             front_face: FrontFace::CounterClockwise,
-            cull_face: cull,
+            cull_face: CullFace::Nothing,
             method: RasterMethod::Fill,
             offset: None,
             samples: None,
+        }
+    }
+
+    /// Add back face culling.
+    pub fn with_cull_back(self) -> Rasterizer {
+        Rasterizer {
+            cull_face: CullFace::Back,
+            ..self
         }
     }
     
