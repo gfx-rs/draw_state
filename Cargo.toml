@@ -27,4 +27,9 @@ name = "draw_state"
 path = "src/lib.rs"
 
 [dependencies]
-bitflags = "0.6"
+bitflags = "0.7"
+serde = { version = "0.9", optional = true }
+serde_derive = { version = "0.9", optional = true }
+
+[features]
+serialize = ["serde", "serde_derive"]
