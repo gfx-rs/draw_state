@@ -14,7 +14,7 @@
 
 [package]
 name = "draw_state"
-version = "0.6.0"
+version = "0.7.0"
 description = "Graphics state blocks for gfx-rs"
 homepage = "https://github.com/gfx-rs/draw_state"
 repository = "https://github.com/gfx-rs/draw_state"
@@ -27,4 +27,9 @@ name = "draw_state"
 path = "src/lib.rs"
 
 [dependencies]
-bitflags = "0.6"
+bitflags = "0.8"
+serde = { version = "1.0", optional = true }
+serde_derive = { version = "1.0", optional = true }
+
+[features]
+serialize = ["serde", "serde_derive"]

@@ -18,6 +18,11 @@
 
 #[macro_use]
 extern crate bitflags;
+#[cfg(feature="serialize")]
+extern crate serde;
+#[cfg(feature="serialize")]
+#[macro_use]
+extern crate serde_derive;
 
 pub mod preset;
 pub mod state;
