@@ -18,6 +18,20 @@
 pub mod blend {
 	use state::{Blend, BlendChannel, BlendValue, Equation, Factor};
 
+    /// When combining two fragments, choose the source value
+    pub const REPLACE: Blend = Blend {
+        color: BlendChannel {
+            equation: Equation::Add,
+            source: Factor::One,
+            destination: Factor::Zero,
+        },
+        alpha: BlendChannel {
+            equation: Equation::Add,
+            source: Factor::One,
+            destination: Factor::Zero,
+        }
+    };
+
 	/// When combining two fragments, add their values together, saturating at 1.0
 	pub const ADD: Blend = Blend {
 	    color: BlendChannel {
@@ -85,6 +99,12 @@ pub mod blend {
 /// Depth preset modes.
 pub mod depth {
     use state::{Comparison, Depth};
+
+    /// Always pass the depth test, no writes
+    pub const PASS_TEST: Depth = Depth {
+        fun: Comparison::Always,
+        write: false,
+    };
 
     /// "<=" comparison with read-only depth
     pub const LESS_EQUAL_TEST: Depth = Depth {

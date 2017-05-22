@@ -112,7 +112,7 @@ impl Rasterizer {
             ..self
         }
     }
-    
+
     /// Add polygon offset.
     pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Rasterizer {
         Rasterizer {
