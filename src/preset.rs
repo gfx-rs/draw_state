@@ -96,23 +96,35 @@ pub mod blend {
     };
 }
 
-/// Depth preset modes.
+/// [Depth](../../state/struct.Depth.html) presets for depth tests.
+///
+/// Depth testing is used to avoid drawing "further away" fragments on top of already drawn
+/// fragments. Each fragment's output depth is tested against a depth buffer, if the test fails
+/// the fragment will not be drawn.
+///
+/// A fragment's output depth is the interpolated vertex z-value, or otherwise
+/// explicitly set (ie in OpenGL by *gl_FragDepth*).
 pub mod depth {
     use state::{Comparison, Depth};
 
-    /// Always pass the depth test, no writes
+    /// When rendering a fragment, draw regardless of depth buffer state.
+    /// Rendering will not update the depth buffer.
     pub const PASS_TEST: Depth = Depth {
         fun: Comparison::Always,
         write: false,
     };
 
-    /// "<=" comparison with read-only depth
+    /// When rendering a fragment, only draw when the fragment's output depth **is less than or
+    /// equal to** the current depth buffer value.
+    /// Rendering will **not** update the depth buffer.
     pub const LESS_EQUAL_TEST: Depth = Depth {
         fun: Comparison::LessEqual,
         write: false,
     };
 
-    /// "<=" comparison with writable depth
+    /// When rendering a fragment, only draw when the fragment's output depth **is less than or
+    /// equal to** the current depth buffer value.
+    /// Rendering will update the depth buffer with the new depth value.
     pub const LESS_EQUAL_WRITE: Depth = Depth {
         fun: Comparison::LessEqual,
         write: true,
