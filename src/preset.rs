@@ -1,4 +1,4 @@
-// Copyright 2015 The Gfx-rs Developers.
+// Copyright 2017 The Gfx-rs Developers.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -114,9 +114,14 @@ pub mod depth {
         write: false,
     };
 
-    /// When rendering a fragment, only draw when the fragment's output depth **is less than or
-    /// equal to** the current depth buffer value.
-    /// Rendering will **not** update the depth buffer.
+    /// When rendering a fragment, draw regardless of depth buffer state.
+    /// Rendering will update the depth buffer.
+    pub const PASS_WRITE: Depth = Depth {
+        fun: Comparison::Always,
+        write: true,
+    };
+
+    /// "<=" comparison with read-only depth
     pub const LESS_EQUAL_TEST: Depth = Depth {
         fun: Comparison::LessEqual,
         write: false,

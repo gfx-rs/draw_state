@@ -1,4 +1,4 @@
-// Copyright 2014 The Gfx-rs Developers.
+// Copyright 2017 The Gfx-rs Developers.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@
 
 #[macro_use]
 extern crate bitflags;
-#[cfg(feature="serialize")]
-extern crate serde;
-#[cfg(feature="serialize")]
 #[macro_use]
-extern crate serde_derive;
+#[cfg(feature="serde")]
+extern crate serde;
 
 pub mod preset;
 pub mod state;
