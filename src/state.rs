@@ -1,4 +1,4 @@
-// Copyright 2014 The Gfx-rs Developers.
+// Copyright 2017 The Gfx-rs Developers.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ use target;
 
 /// The front face winding order of a set of vertices.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum FrontFace {
     /// Clockwise winding order.
     Clockwise,
@@ -44,13 +44,13 @@ pub type OffsetUnits = i32;
 
 /// How to offset vertices in screen space, if at all.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Offset(pub OffsetSlope, pub OffsetUnits);
 
 /// Which face, if any, to cull.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum CullFace {
     Nothing,
     Front,
@@ -59,7 +59,7 @@ pub enum CullFace {
 
 /// How to rasterize a primitive.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum RasterMethod {
     /// Rasterize as a point.
     Point,
@@ -71,7 +71,7 @@ pub enum RasterMethod {
 
 /// Multi-sampling rasterization mode
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct MultiSample;
     //sample_mask: u16,
     //alpha_to_coverage: bool,
@@ -79,7 +79,7 @@ pub struct MultiSample;
 /// Primitive rasterization state. Note that GL allows different raster
 /// method to be used for front and back, while this abstraction does not.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Rasterizer {
     /// Which vertex winding is considered to be the front face for culling.
     pub front_face: FrontFace,
@@ -95,7 +95,7 @@ pub struct Rasterizer {
 
 impl Rasterizer {
     /// Create a new filling rasterizer.
-    pub fn new_fill() -> Rasterizer {
+    pub fn new_fill() -> Self {
         Rasterizer {
             front_face: FrontFace::CounterClockwise,
             cull_face: CullFace::Nothing,
@@ -106,7 +106,7 @@ impl Rasterizer {
     }
 
     /// Add back face culling.
-    pub fn with_cull_back(self) -> Rasterizer {
+    pub fn with_cull_back(self) -> Self {
         Rasterizer {
             cull_face: CullFace::Back,
             ..self
@@ -114,7 +114,7 @@ impl Rasterizer {
     }
 
     /// Add polygon offset.
-    pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Rasterizer {
+    pub fn with_offset(self, slope: f32, units: OffsetUnits) -> Self {
         Rasterizer {
             offset: Some(Offset(slope as OffsetSlope, units)),
             ..self
@@ -124,7 +124,7 @@ impl Rasterizer {
 
 /// A pixel-wise comparison function.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum Comparison {
     /// `false`
     Never,
@@ -147,7 +147,7 @@ pub enum Comparison {
 /// Stencil mask operation.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum StencilOp {
     /// Keep the current value in the stencil buffer (no change).
     Keep,
@@ -169,7 +169,7 @@ pub enum StencilOp {
 
 /// Complete stencil state for a given side of a face.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct StencilSide {
     /// Comparison function to use to determine if the stencil test passes.
     pub fun: Comparison,
@@ -187,7 +187,7 @@ pub struct StencilSide {
 }
 
 impl Default for StencilSide {
-    fn default() -> StencilSide {
+    fn default() -> Self {
         StencilSide {
             fun: Comparison::Always,
             mask_read: target::Stencil::max_value(),
@@ -201,27 +201,18 @@ impl Default for StencilSide {
 
 /// Complete stencil state, specifying how to handle the front and back side of a face.
 #[allow(missing_docs)]
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Stencil {
     pub front: StencilSide,
     pub back: StencilSide,
-}
-
-impl Default for Stencil {
-    fn default() -> Stencil {
-        Stencil {
-            front: Default::default(),
-            back: Default::default(),
-        }
-    }
 }
 
 impl Stencil {
     /// Create a new stencil state with a given function.
     pub fn new(fun: Comparison, mask: target::Stencil,
                ops: (StencilOp, StencilOp, StencilOp))
-               -> Stencil {
+               -> Self {
         let side = StencilSide {
             fun: fun,
             mask_read: mask,
@@ -239,7 +230,7 @@ impl Stencil {
 
 /// Depth test state.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Depth {
     /// Comparison function to use.
     pub fun: Comparison,
@@ -248,7 +239,7 @@ pub struct Depth {
 }
 
 impl Default for Depth {
-    fn default() -> Depth {
+    fn default() -> Self {
         Depth {
             fun: Comparison::Always,
             write: false,
@@ -258,7 +249,7 @@ impl Default for Depth {
 
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum Equation {
     /// Adds source and destination.
     /// Source and destination are multiplied by blending parameters before addition.
@@ -279,7 +270,7 @@ pub enum Equation {
 
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum BlendValue {
     SourceColor,
     SourceAlpha,
@@ -291,7 +282,7 @@ pub enum BlendValue {
 
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub enum Factor {
     Zero,
     One,
@@ -302,7 +293,7 @@ pub enum Factor {
 
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct BlendChannel {
     pub equation: Equation,
     pub source: Factor,
@@ -310,35 +301,26 @@ pub struct BlendChannel {
 }
 
 impl Default for BlendChannel {
-    fn default() -> BlendChannel {
+    fn default() -> Self {
         BlendChannel {
             equation: Equation::Add,
             source: Factor::One,
-            destination: Factor::One,
+            destination: Factor::Zero,
         }
     }
 }
 
 #[allow(missing_docs)]
-#[derive(Clone, Copy, Eq, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Blend {
     pub color: BlendChannel,
     pub alpha: BlendChannel,
 }
 
-impl Default for Blend {
-    fn default() -> Blend {
-        Blend {
-            color: Default::default(),
-            alpha: Default::default(),
-        }
-    }
-}
-
 impl Blend {
     /// Create a new blend state with a given equation.
-    pub fn new(eq: Equation, src: Factor, dst: Factor) -> Blend {
+    pub fn new(eq: Equation, src: Factor, dst: Factor) -> Self {
         let chan = BlendChannel {
             equation: eq,
             source: src,
@@ -360,26 +342,22 @@ impl fmt::Debug for Blend {
 
 bitflags!(
     #[allow(missing_docs)]
-    #[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
-    pub flags ColorMask: u8 {
+    #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+    pub struct ColorMask: u8 {
         #[allow(missing_docs)]
-        const RED     = 0x1,
+        const RED     = 0x1;
         #[allow(missing_docs)]
-        const GREEN   = 0x2,
+        const GREEN   = 0x2;
         #[allow(missing_docs)]
-        const BLUE    = 0x4,
+        const BLUE    = 0x4;
         #[allow(missing_docs)]
-        const ALPHA   = 0x8,
-        #[allow(missing_docs)]
-        const MASK_ALL = 0xF,
-        #[allow(missing_docs)]
-        const MASK_NONE = 0x0
+        const ALPHA   = 0x8;
     }
 );
 
 /// The state of an active color render target
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Color {
     /// Color mask to use.
     pub mask: ColorMask,
@@ -388,9 +366,9 @@ pub struct Color {
 }
 
 impl Default for Color {
-    fn default() -> Color {
+    fn default() -> Self {
         Color {
-            mask: MASK_ALL,
+            mask: ColorMask::all(),
             blend: None,
         }
     }
@@ -399,7 +377,7 @@ impl Default for Color {
 /// The complete set of the rasterizer reference values.
 /// Switching these doesn't roll the hardware context.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct RefValues {
     /// Stencil front and back values.
     pub stencil: (target::Stencil, target::Stencil),
@@ -408,7 +386,7 @@ pub struct RefValues {
 }
 
 impl Default for RefValues {
-    fn default() -> RefValues {
+    fn default() -> Self {
         RefValues {
             stencil: (0, 0),
             blend: [0f32; 4],

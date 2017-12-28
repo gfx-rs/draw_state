@@ -1,4 +1,4 @@
-// Copyright 2014 The Gfx-rs Developers.
+// Copyright 2017 The Gfx-rs Developers.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ pub type Stencil = u8;
 /// A screen space rectangle
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Hash, PartialEq, PartialOrd)]
-#[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -41,11 +41,11 @@ pub type ColorValue = [f32; 4];
 
 bitflags!(
     /// Mirroring flags, used for blitting
-    #[cfg_attr(feature="serialize", derive(Serialize, Deserialize))]
-    pub flags Mirror: u8 {
-        #[allow(missing_docs)]
-        const MIRROR_X  = 0x01,
-        #[allow(missing_docs)]
-        const MIRROR_Y  = 0x02,
+    #[cfg_attr(feature="serde", derive(Serialize, Deserialize))]
+    pub struct Mirror: u8 {
+        ///
+        const X  = 0x01;
+        ///
+        const Y  = 0x02;
     }
 );
